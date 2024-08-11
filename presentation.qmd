@@ -1,7 +1,7 @@
 ---
-title: "BART: Bayesian Additive Regression Trees"
+title: "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC"
 subtitle: "INFO 523 - Summer 2024 - Final Project"
-description: "Presentation on Bayesian Additive Regression Trees with MCMC for uncertainty"
+description: "Presentation on Bayesian Additive Regression Trees with MCMC"
 author: 
 - name: Cristina Lafuente
   affiliation: Department of Electrical and Computer Engineering, University of Arizona

@@ -1,0 +1,25 @@
+project:
+  type: website
+
+website:
+  title: 'From Trees to Chains: Implementing Bayesian Additive Regression with MCMC'
+  navbar:
+    right:
+      - icon: github
+        href: https://github.com/CristinaUAMS/INFO523DM-FinalProject.git
+    left:
+      - text: Project
+        href: SupportingInfo.qmd
+      - text: Presentation
+        href: presentation.qmd
+     
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+    toc: true
+
+
+execute:
+  freeze: auto

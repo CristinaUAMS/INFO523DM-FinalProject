@@ -1,0 +1,135 @@
+[
+  {
+    "objectID": "SupportingInfo.html",
+    "href": "SupportingInfo.html",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "",
+    "text": "Bayesian Additive Regression Trees (BART) with Markov Chain Monte Carlo (MCMC) is a powerful approach for predictive modeling. This paper and presentation explore BART algorithm focusing on the additive tree structure and the role of MCMC in efficiently estimating model parameters. Contained within is a worked example using a publicly available dataset Boston housing data demonstrating how BART with MCMC captures the complex relationships and provides uncertainty estimates. Further, there is discussion of other real-world applications of this approach including (but not limited to): healthcare risk prediction, environmental monitoring, and market forecasting."
+  },
+  {
+    "objectID": "SupportingInfo.html#background",
+    "href": "SupportingInfo.html#background",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Background",
+    "text": "Background\nBayesian Additive Regression Trees with Markov Chain Monte Carlo creates a robust approach for predictive modeling. It can model complex, non-linear relationships without specific modeling of interactions. Bayesian approach provides uncertainty estimates which help give context and understanding to the model, especially with respect to reliability. By averaging over many trees, it is less likely to be over-fitted than if a single, large tree were used. BART is a non-parametric Bayesian method for regression and classification. It can model complex relationships by combining multiple simple decision trees to predict an outcome. The additive refers to the fact that the overall prediction is the sum of the contributions from each tree. It uses Bayesian inference to estimate the posterior distribution of the model’s parameters providing point estimates and measures of uncertainty in predictions. MCMC methods generate samples from the posterior distribution of the parameters by constructing a Markov chain with the desired distribution as the equilibrium distribution. Using the combined method, the overly complex trees are penalized to prevent over-fitting. During sampling, the trees and their structure are updated based on data and prior distribution. Once sampling is complete, the final prediction for a new observation is developed by averaging the predictions from all the sampled trees."
+  },
+  {
+    "objectID": "SupportingInfo.html#details",
+    "href": "SupportingInfo.html#details",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Details",
+    "text": "Details\n\nEquation Basics\nGiven the standard polynomial regression equation:  \\(E [Y] = \\beta_0 +\\beta_1 B_1(X_1)+\\beta_2 B_2(X_2) + \\cdot \\cdot \\cdot + \\beta_m B_m(X_m)\\)\nAssuming that the Bi basis functions in a standard polynomial regression equation are decision trees, the equation becomes: \n\\(E[Y] = \\phi (\\sum_{j=0}^m g_j(X_i T_j, M_j), \\theta)\\) where:  each gj is a tree of the form g(Xi Tj, Mj)  Tj represents the structure of the binary tree (the set of internal nodes and their decision rules and a set of terminal nodes)  \\(M_j = \\{\\mu_{1,j}, \\mu_{2,j}, \\cdot\\cdot\\cdot, \\mu_{b,j}\\}\\) represents the values at the bj terminal nodes  \\(\\phi\\) represents an arbitrary probability distribution that will be used as the likelihood in the model  \\(\\theta\\) other parameters from \\(\\phi\\) not modeled as a sum of trees \nSome examples of probability distributions might be a Gaussian, a Poisson distribution, or a t-distribution. \n\n\nPriors\nTo specify the BART model, priors need to be specified. These priors help shape the model’s structure, control the complexity and guide the learning process. Those prior specifications can be: \n\nTree Structure and Complexity: Limiting tree depth and size. \nTerminal Node Values: Specifying the distribution for leaf values (i.e. normal distribution) \nSplits and Growth: Controlling the likelihood and nature of tree splits and number of trees within the ensemble. \nWeights and Hyperparameters: Setting priors to balance flexibility and regularization \n\nHere we will use:  Independence: In order to simplify the specification of the prior, assume that the structure of the tree Tj and the leaf values Mj are independent.  Tree Structure:  1 - Probability that a node at depth \\(d = (0, 1, 2, ...)\\) is non terminal is given by \\(\\alpha^d\\) where \\(\\alpha\\) is recommended to be \\(\\in [0, 0.5)\\).  2 - Distribution over the splitting variable: which covariate is included in the tree Xi most commonly uniform over available covariates.  3 - Distribution over the splitting variable: once the splitting variable is chosen, which value is used to make a decision. see figure below for illustration of splitting rule\n Leaf Values \\(\\mu_{ij}\\) and Number of Trees m: Best results are acheived from setting a specific value of m (usually between 10 and 200) and cross validating. \n\n\nMCMC Sampling Process\nMarkov Chain Monte Carlo is used to sample from the posterior distribution of the parameters. It generates samples of the regression trees’ structures - arrangement of splits and terminal nodes - exploring possible tree configurations.  Each tree’s terminal node values are sampled from their posterior distributions. The node values usually follow a normal distribution with mean and variance specified by the model.\nAlgorithm:  Start with initial configuration of trees - either randomly generated or based on some specified method.  Iterate: Update Structures. Changes to the current set of trees are proposed - adding or deleting trees or modifying the structure of existing trees. The changes are accepted or rejected based on probability given data and the prior distribution. Update Terminal Node Values For each tree update the values at the terminal nodes. Sample from the posterior distribution of the values given the current tree structure and data. Acceptance Criteria Use a set criterion to decide whether to accept proposed changes. Convergence: Continue sampling until the Markov chain converges to the stationary distribution which approximates the posterior distribution of the model parameters. Once MCMC sampling is complete, predictions for new data are obtained by averaging predictions from all sampled trees. Each tree contributes to the final prediction based on its sampled weight. The variablity in predictions across sampled trees reflects uncertainty in the model. \n\n\nPurpose of the Model\nThe purpose of the Bayesian Additive Regression Trees with Markov Chain Monte Carlo is to provide a robust and flexible framework for predictive modeling and inference using both the Bayesian principles and regression tree methods. This method models complex relationships and quantifies uncertainty. It prevents overfitting while delivering accurate predictions for a variety of real-world applications. It is the best of the Bayesian inference and tree-based models."
+  },
+  {
+    "objectID": "SupportingInfo.html#relation-of-this-topic-to-course",
+    "href": "SupportingInfo.html#relation-of-this-topic-to-course",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Relation of this topic to course",
+    "text": "Relation of this topic to course\nBART with MCMC is related to the following course topics:\n\nRegression BART does not assume fixed relationship between predictors and response. Instead it builds flexible models using decision trees capturing non-linear interactions. \nOverfitting Overly complicated tree structures are penalized through the use of priors to prevent overfitting to allow it to generalize well to any new data (test). \nRegression Trees BART represents the sum of multiple regression trees where each tree captures a different feature of the data which allows much more complex datasets to be analyzed. \nBayesian Methods The prior distribution is applied to the structure of the regression trees influencing how they are built and the complexity of the model. Additionally, posterior sampling like MCMC methods update the structure and their parameters. \nData manipulation In nearly all cases, data will need to be manipulated. Basic wrangling may need to be done on any data for any model. With BART models, if models do not fit well, feature selection to eliminate noisy features may help the model fit better. \nAbility to handle non-linearity and interactions Because of the use of multiple regression trees that model piecewise functions and then combine to approximate non-linear functions, BART is able to handle more complex relationships. Similarly, the splitting and combining of the decision trees allows for the handling of interactions."
+  },
+  {
+    "objectID": "SupportingInfo.html#real-world-applications",
+    "href": "SupportingInfo.html#real-world-applications",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Real-world applications",
+    "text": "Real-world applications\nBART with MCMC is useful in a number of different real-life scenarios. The common aspect of those is that the data exhibits non-linear relationships and interactions between the variables, there is need for uncertainty estimates, high accuracy is preferable. Some specific examples include: - Finance:  From credit risk assessment to stock price prediction, financial analysis is complex and non-linear and requires in depth analysis which this method can provide. - Healthcare:  Disease risk modeling based on risk factors where there are innumerable interactions to patient outcome predictions are complex and difficult to model with some of the more simple models. - Marketing:  Customer behaviors can be complicated and this model is more able than most to examine the many different aspects. - Environmental Science:  From climate modeling to ecological modeling, this method can help scientists examine different variables, their impacts and patterns. This can help with conservation planning and assessing environmental impact.  - Engineering:  Detection of anomalies or faults based on sensor data before failure has occurred or in quality control by identifying factors which affect defects. Uncertainty estimates can help specificly identify quality control issues. - Epidemiology:  BART can model everything from disease spread to intervention effectiveness and give uncertainty estimates which are important for understanding and predicting points of possible outbreaks. - Real Estate:  BART can be used to predict property values based on location, size, amenities as well as markets. It can also be used to forecast future prices through market trend analysis."
+  },
+  {
+    "objectID": "SupportingInfo.html#the-data",
+    "href": "SupportingInfo.html#the-data",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "The data",
+    "text": "The data\nThe Boston Housing dataset from the ‘MASS’ library consists of various features related to housing, including:\n\ncrim: Per capita crime rate by town\nzn: Proportion of residential land zoned for lots over 25,000 sq. ft.\nindus: Proportion of non-retail business acres per town\nchas: Charles River dummy variable (1 if tract bounds river; 0 otherwise)\nnox: Nitric oxides concentration (parts per 10 million)\nrm: Average number of rooms per dwelling\nage: Proportion of owner-occupied units built prior to 1940\ndis: Weighted distances to five Boston employment centers\nrad: Index of accessibility to radial highways\ntax: Full-value property tax rate per $10,000\nptratio: Pupil-teacher ratio by town\nblack: 1000(Bk - 0.63)^2 where Bk is the proportion of Black residents by town\nlstat: Percentage of lower status of the population\nmedv: Median value of owner-occupied homes in $1000s (target variable)\n\nThe data looks like:\n\n\nRows: 6\nColumns: 14\n$ crim    &lt;dbl&gt; 0.00632, 0.02731, 0.02729, 0.03237, 0.06905, 0.02985\n$ zn      &lt;dbl&gt; 18, 0, 0, 0, 0, 0\n$ indus   &lt;dbl&gt; 2.31, 7.07, 7.07, 2.18, 2.18, 2.18\n$ chas    &lt;int&gt; 0, 0, 0, 0, 0, 0\n$ nox     &lt;dbl&gt; 0.538, 0.469, 0.469, 0.458, 0.458, 0.458\n$ rm      &lt;dbl&gt; 6.575, 6.421, 7.185, 6.998, 7.147, 6.430\n$ age     &lt;dbl&gt; 65.2, 78.9, 61.1, 45.8, 54.2, 58.7\n$ dis     &lt;dbl&gt; 4.0900, 4.9671, 4.9671, 6.0622, 6.0622, 6.0622\n$ rad     &lt;int&gt; 1, 2, 2, 3, 3, 3\n$ tax     &lt;dbl&gt; 296, 242, 242, 222, 222, 222\n$ ptratio &lt;dbl&gt; 15.3, 17.8, 17.8, 18.7, 18.7, 18.7\n$ black   &lt;dbl&gt; 396.90, 396.90, 392.83, 394.63, 396.90, 394.12\n$ lstat   &lt;dbl&gt; 4.98, 9.14, 4.03, 2.94, 5.33, 5.21\n$ medv    &lt;dbl&gt; 24.0, 21.6, 34.7, 33.4, 36.2, 28.7"
+  },
+  {
+    "objectID": "presentation.html#bayesian-additive-regression-trees",
+    "href": "presentation.html#bayesian-additive-regression-trees",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Bayesian Additive Regression Trees",
+    "text": "Bayesian Additive Regression Trees\n\nImage source: Catalyzex Multiple regression trees put together in a larger ensemble to model complex data with many features."
+  },
+  {
+    "objectID": "presentation.html#basic-background-and-purpose",
+    "href": "presentation.html#basic-background-and-purpose",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Basic Background and Purpose",
+    "text": "Basic Background and Purpose\n\n\nBayesian Additive Regression Trees with Markov Chain Monte Carlo can model complex, non-linear relationships without explicit modeling of interactions. \nBayesian approach provides uncertainty estimates giving context and understanding to reliability of the model. \nBy averaging over many trees, it is less likely to be over-fitted than if a single, large tree were used. \nThey are additive because the overall prediction is the average of the predictions of the contributions from each tree. \nMCMC methods generate samples from the posterior distribution of the parameters by constructing a Markov chain with the desired distribution as the equilibrium distribution."
+  },
+  {
+    "objectID": "presentation.html#details",
+    "href": "presentation.html#details",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Details",
+    "text": "Details\n\nEQUATION:  Given the standard polynomial regression equation:  \\(E [Y] = \\beta_0 +\\beta_1 B_1(X_1)+\\beta_2 B_2(X_2) + \\cdot \\cdot \\cdot + \\beta_m B_m(X_m)\\)\nAssuming that the Bi basis functions in a standard polynomial regression equation are decision trees, the equation becomes: \n\\(E[Y] = \\phi (\\sum_{j=0}^m g_j(X_i T_j, M_j), \\theta)\\) where:  each gj is a tree of the form g(Xi Tj, Mj)  Tj represents the structure of the binary tree (the set of internal nodes and their decision rules and a set of terminal nodes)  \\(M_j = \\{\\mu_{1,j}, \\mu_{2,j}, \\cdot\\cdot\\cdot, \\mu_{b,j}\\}\\) represents the values at the bj terminal nodes  \\(\\phi\\) represents an arbitrary probability distribution that will be used as the likelihood in the model  \\(\\theta\\) other parameters from \\(\\phi\\) not modeled as a sum of trees \nSome examples of probability distributions might be a Gaussian, a Poisson distribution, or a t-distribution."
+  },
+  {
+    "objectID": "presentation.html#purpose-of-the-model",
+    "href": "presentation.html#purpose-of-the-model",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Purpose of the Model",
+    "text": "Purpose of the Model\nThe purpose of the Bayesian Additive Regression Trees with Markov Chain Monte Carlo is to provide a robust and flexible framework for predictive modeling and inference using both the Bayesian principles and regression tree methods. This method models complex relationships and quantifies uncertainty. It prevents overfitting while delivering accurate predictions for a variety of real-world applications. It offers the best of the Bayesian inference and tree-based models."
+  },
+  {
+    "objectID": "presentation.html#relation-of-this-topic-to-course",
+    "href": "presentation.html#relation-of-this-topic-to-course",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Relation of this topic to course",
+    "text": "Relation of this topic to course\n\nBART with MCMC is related to the following course topics:\n\nRegression BART builds flexible models using decision trees capturing non-linear interactions. \nOverfitting Overly complicated tree structures are penalized through the use of priors to prevent overfitting to allow it to generalize well to any new data (test). \nRegression Trees BART represents the sum of multiple regression trees where each tree captures a different feature of the data. \nBayesian Methods The prior distribution is applied to the structure of the regression trees influencing how they are built and the complexity of the model. Additionally, posterior sampling like MCMC methods update the structure and their parameters. \nData manipulation With BART models, if models do not fit well, feature selection to eliminate noisy features may help the model fit better. \nAbility to handle non-linearity and interactions BART is able to handle more complex relationships and the splitting and combining of the decision trees allows for the handling of interactions."
+  },
+  {
+    "objectID": "presentation.html#real-world-applications",
+    "href": "presentation.html#real-world-applications",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Real-world applications",
+    "text": "Real-world applications\n\nBART with MCMC is useful in real-world applications where data exhibits non-linear relationships and there are interactions between the variables, there is need for uncertainty estimates, especially if high accuracy is preferable. Some specific examples include: - Finance:  From credit risk assessment to stock price prediction, financial analysis is complex and non-linear and requires in depth analysis. - Healthcare:  Disease risk modeling based on risk factors where there are innumerable interactions to patient outcome predictions are complex. - Marketing:  Customer behaviors can be complicated and this model is more able than most to examine the many different aspects. - Environmental Science:  From climate modeling to ecological modeling, this method can help scientists examine different variables, their impacts and patterns. This can help with conservation planning and assessing environmental impact.  - Engineering:  Detection of anomalies or faults based on sensor data before failure has occurred or in quality control by identifying factors which affect defects. Uncertainty estimates can help specifically identify quality control issues. - Epidemiology:  BART can model everything from disease spread to intervention effectiveness and give uncertainty estimates which are important for understanding and predicting points of possible outbreaks. - Real Estate:  BART can be used to predict property values based on location, size, amenities as well as markets. It can also be used to forecast future prices through market trend analysis."
+  },
+  {
+    "objectID": "presentation.html#the-data",
+    "href": "presentation.html#the-data",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "The data",
+    "text": "The data\n\nThe Boston Housing dataset from the ‘MASS’ library consists of various features related to housing, including:\n\ncrim: Per capita crime rate by town\nzn: Proportion of residential land zoned for lots over 25,000 sq. ft.\nindus: Proportion of non-retail business acres per town\nchas: Charles River dummy variable (1 if tract bounds river; 0 otherwise)\nnox: Nitric oxides concentration (parts per 10 million)\nrm: Average number of rooms per dwelling\nage: Proportion of owner-occupied units built prior to 1940\ndis: Weighted distances to five Boston employment centers\nrad: Index of accessibility to radial highways\ntax: Full-value property tax rate per $10,000\nptratio: Pupil-teacher ratio by town\nblack: 1000(Bk - 0.63)^2 where Bk is the proportion of Black residents by town\nlstat: Percentage of lower status of the population\nmedv: Median value of owner-occupied homes in $1000s (target variable)"
+  },
+  {
+    "objectID": "presentation.html#worked-example-with-given-data",
+    "href": "presentation.html#worked-example-with-given-data",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Worked Example with given Data",
+    "text": "Worked Example with given Data\n\nFirst the data is split into a 70% training, 30% test where the target is the median value of owner occupied homes (in thousands of dollars).\nThen, using the bartMachine package, create a BART model. This package is nice because it creates the model and has a lot of the information that is very useful for understanding how well the data fits the model.  It shows the \\(\\sigma^2\\) values where a lower value represents a better fit.  L1 and L2 Mean Absolute Error and Mean Squared Error as well as root mean squared error.  Additionally a pseudo R squared value and shapiro-wilk test for normality of the residuals p-value is included as well as a p-value for zero-mean noise (how close to zero the mean remains). \n\n\nbartMachine initializing with 50 trees...\nbartMachine vars checked...\nbartMachine java init...\nbartMachine factors created...\nbartMachine before preprocess...\nbartMachine after preprocess... 13 total features...\nbartMachine sigsq estimated...\nbartMachine training data finalized...\nNow building bartMachine for regression...\nevaluating in sample data...done\n\n\nbartMachine v1.3.4.1 for regression\n\ntraining data size: n = 367 and p = 13 \nbuilt in 1.2 secs on 1 core, 50 trees, 250 burn-in and 1000 post. samples\n\nsigsq est for y beforehand: 22.204 \navg sigsq estimate after burn-in: 3.27317 \n\nin-sample statistics:\n L1 = 397.84 \n L2 = 694.47 \n rmse = 1.38 \n Pseudo-Rsq = 0.9789\np-val for shapiro-wilk test of normality of residuals: 0.60729 \np-val for zero-mean noise: 0.95885 \n\n\n[1] \"Mean Squared Error:  12.4122135495361\""
+  },
+  {
+    "objectID": "presentation.html#covariance-importance",
+    "href": "presentation.html#covariance-importance",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Covariance Importance",
+    "text": "Covariance Importance\nThe covariance importance test can show whether the combined features have significant impact on outcome (p-value &lt;0.05) \n\n\nbartMachine omnibus test for covariate importance\n..................................................\n..................................................\n\n\n\np_val =  0"
+  },
+  {
+    "objectID": "presentation.html#variable-proportions",
+    "href": "presentation.html#variable-proportions",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Variable Proportions",
+    "text": "Variable Proportions\nThe proportions of each variable can be shown as a list to get a more precise list so that, if desired or needed, lower value variables could be removed to improved the model. \n\n\n      crim         zn      indus       chas        nox         rm        age \n0.07032911 0.04334977 0.08545582 0.05315078 0.09137682 0.11282847 0.05491538 \n       dis        rad        tax    ptratio      black      lstat \n0.11280721 0.04943022 0.07332681 0.07570797 0.07266774 0.10465388"
+  },
+  {
+    "objectID": "presentation.html#mcmc-uncertainty",
+    "href": "presentation.html#mcmc-uncertainty",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "MCMC Uncertainty",
+    "text": "MCMC Uncertainty\nLooking at the Markov-Chain Monte Carlo Uncertainty can give a good visual representation of the uncertainty at different points throughout the data."
+  },
+  {
+    "objectID": "presentation.html#conclusions-recommendations-future-work",
+    "href": "presentation.html#conclusions-recommendations-future-work",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Conclusions, Recommendations, Future Work",
+    "text": "Conclusions, Recommendations, Future Work\nBART with MCMC is one of the better methods for modeling datasets with non-linear relationships or complicated interactions without requiring explicit specifications for all interactions and relationships. The inclusion of uncertainty data increases its value by allowing users to have an implicit understanding of how much to trust it. It is useful in many different real-world applications across a wide variety of fields. As data collection tools improve, datasets will become more complicated and this model will continue to have value because of its ability to deal with large complicated datasets."
+  },
+  {
+    "objectID": "presentation.html#references",
+    "href": "presentation.html#references",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "References",
+    "text": "References\nBayesian Modeling and Computation in Python. (2022). Bayesiancomputationbook.com. https://bayesiancomputationbook.com , Hugh A. Chipman, Edward I. George, and Robert E. McCulloch. \nCatalyzeX. (2023). Sharded Bayesian Additive Regression Trees. CatalyzeX. https://www.catalyzex.com/paper/sharded-bayesian-additive-regression-trees \nVeronika Ročková and Enakshi Saha. On theory for bart. In The 22nd International Conference on Artificial Intelligence and Statistics, 2839–2848. PMLR, 2019."
+  }
+]

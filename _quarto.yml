@@ -9,7 +9,7 @@ website:
         href: https://github.com/CristinaUAMS/INFO523DM-FinalProject.git
     left:
       - text: Project
-        href: SupportingInfo.qmd
+        href: index.qmd
       - text: Presentation
         href: presentation.qmd
      

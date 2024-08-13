@@ -53,7 +53,7 @@ To specify the BART model, priors need to be specified. These priors help shape 
 
 #### MCMC Sampling Process
 
-Markov Chain Monte Carlo is used to sample from the posterior distribution of the parameters. It generates samples of the regression trees' structures - arrangement of splits and terminal nodes - exploring possible tree configurations. <br/> Each tree's terminal node values are sampled from their posterior distributions. The node values usually folow a normal distribution with mean and variance specified by the model.<br/>
+Markov Chain Monte Carlo is used to sample from the posterior distribution of the parameters. It generates samples of the regression trees' structures - arrangement of splits and terminal nodes - exploring possible tree configurations. <br/> Each tree's terminal node values are sampled from their posterior distributions. The node values usually follow a normal distribution with mean and variance specified by the model.<br/>
 
 **Algorithm:** <br/> Start with initial configuration of trees - either randomly generated or based on some specified method. <br/> **Iterate:** **Update Structures.** Changes to the current set of trees are proposed - adding or deleting trees or modifying the structure of existing trees. The changes are accepted or rejected based on probability given data and the prior distribution. **Update Terminal Node Values** For each tree update the values at the terminal nodes. Sample from the posterior distribution of the values given the current tree structure and data. **Acceptance Criteria** Use a set criterion to decide whether to accept proposed changes.<br/> **Convergence:** Continue sampling until the Markov chain converges to the stationary distribution which approximates the posterior distribution of the model parameters.<br/><br/> Once MCMC sampling is complete, predictions for new data are obtained by averaging predictions from all sampled trees. Each tree contributes to the final prediction based on its sampled weight.<br/> The variablity in predictions across sampled trees reflects uncertainty in the model. <br/>
 
@@ -309,5 +309,7 @@ BART with MCMC is one of the better methods for modeling datasets with non-linea
 # References
 
 Bayesian Modeling and Computation in Python. (2022). Bayesiancomputationbook.com. https://bayesiancomputationbook.com , Hugh A. Chipman, Edward I. George, and Robert E. McCulloch. <br/>
+
+CatalyzeX. (2023). Sharded Bayesian Additive Regression Trees. CatalyzeX. https://www.catalyzex.com/paper/sharded-bayesian-additive-regression-trees <br/>
 
 Veronika Ročková and Enakshi Saha. On theory for bart. In The 22nd International Conference on Artificial Intelligence and Statistics, 2839–2848. PMLR, 2019. <br/>

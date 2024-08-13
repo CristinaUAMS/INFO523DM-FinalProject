@@ -18,7 +18,7 @@ execute:
 
 # Abstract
 
-Bayesian Additive Regression Trees (BART) with Markov Chain Monte Carlo (MCMC) is a powerful approach for predictive modeling. This paper and presentation explore BART algorithm focusing on the additive tree structure and the role of MCMC in efficiently estimating model parameters. Contained within is a worked example using a publicly available dataset of earned tips demonstrating how BART with MCMC captures the complex relationships and provides uncertainty estimates. Further, there is discussion of other real-world applications of this approach including (but not limited to): healthcare risk prediction, environmental monitoring, and market forecasting.
+Bayesian Additive Regression Trees (BART) with Markov Chain Monte Carlo (MCMC) is a powerful approach for predictive modeling. This paper and presentation explore BART algorithm focusing on the additive tree structure and the role of MCMC in efficiently estimating model parameters. Contained within is a worked example using a publicly available dataset Boston housing data demonstrating how BART with MCMC captures the complex relationships and provides uncertainty estimates. Further, there is discussion of other real-world applications of this approach including (but not limited to): healthcare risk prediction, environmental monitoring, and market forecasting.
 
 # Introduction
 
@@ -66,17 +66,17 @@ The purpose of the Bayesian Additive Regression Trees with Markov Chain Monte Ca
 
 BART with MCMC is related to the following course topics:<br/>
 
--   Regression<br/>
+-   Regression<br/> BART does not assume fixed relationship between predictors and response. Instead it builds flexible models using decision trees capturing non-linear interactions. <br/>
 
--   Overfitting<br/>
+-   Overfitting<br/> Overly complicated tree structures are penalized through the use of priors to prevent overfitting to allow it to generalize well to any new data (test). <br/>
 
--   Regression Trees<br/>
+-   Regression Trees<br/> BART represents the sum of multiple regression trees where each tree captures a different feature of the data which allows much more complex datasets to be analyzed. <br/>
 
--   Bayesian Methods<br/>
+-   Bayesian Methods<br/> The prior distribution is applied to the structure of the regression trees influencing how they are built and the complexity of the model. Additionally, posterior sampling like MCMC methods update the structure and their parameters. <br/>
 
--   Data manipulation<br/>
+-   Data manipulation<br/> In nearly all cases, data will need to be manipulated. Basic wrangling may need to be done on any data for any model. With BART models, if models do not fit well, feature selection to eliminate noisy features may help the model fit better. <br/>
 
--   Ability to handle non-linearity and interactions<br/>
+-   Ability to handle non-linearity and interactions<br/> Because of the use of multiple regression trees that model piecewise functions and then combine to approximate non-linear functions, BART is able to handle more complex relationships. Similarly, the splitting and combining of the decision trees allows for the handling of interactions. <br/>
 
 ## Real-world applications
 
@@ -127,7 +127,7 @@ boston_data <- Boston
 
 ```
 
-The Boston Housing dataset consists of various features related to housing, including:<br/>
+The Boston Housing dataset from the 'MASS' library consists of various features related to housing, including:<br/>
 
  -  crim: Per capita crime rate by town<br/>
  -  zn: Proportion of residential land zoned for lots over 25,000 sq. ft.<br/>
@@ -149,15 +149,17 @@ The data looks like:
 
 ```{r}
 #| label: data
-#| include: false
+#| 
 
 
 glimpse(head(boston_data))
 ```
 
 # Worked Example with given Data
+
+First the data is split into a 70% training, 30% test where the target is the median value of owner occupied homes (in thousands of dollars).
 ```{r}
-#|label: worked-example
+#|label: splitting-data
 
 set.seed(1123)
 
@@ -172,17 +174,35 @@ y_train <- train_data$medv
 X_test <- test_data[, -14]
 y_test <- test_data$medv
 
+```
+
+Then, using the bartMachine package, create a BART model. This package is nice because it creates the model and has a lot of the information that is very useful for understanding how well the data fits the model. <br/>
+It shows the $\sigma^2$ values where a lower value represents a better fit. <br/>
+L1 and L2 Mean Absolute Error and Mean Squared Error as well as root mean squared error. <br/>
+Additionally a pseudo R squared value and shapiro-wilk test for normality of the residuals p-value is included as well as a p-value for zero-mean noise (how close to zero the mean remains). <br/>
+```{r}
+#|label: bart
 bart_model <- bartMachine(X_train, y_train)
 y_pred <- predict(bart_model, X_test)
-
+bart_model
 mse <- mean((y_test - y_pred)^2)
 print(paste('Mean Squared Error: ', mse))
+```
+
+In addition to the baseline information, it is also of value to look at which variables are of most importance to the model. <br/>
+```{r}
+#|label: analyze
 
 importance <- investigate_var_importance(bart_model)
+```
 
+There is significant data available through this package including which direction was traversed at each node but here, that information is somewhat beyond the pale. <br/>
+What is more useful, is examining the relationship between the predicted values and the actual values. <br/>
+
+```{r}
+#|label: plotting data
 #node_data <- extract_raw_node_data(bart_model)
 
-#treeData <- extractTreeData(bart_model, tipsData)
 prediction <- predict(bart_model, X_train)
 ggplot(data.frame(Actual = y_train, Predicted = prediction),
        aes(x = Actual, y = Predicted)) +
@@ -190,8 +210,20 @@ ggplot(data.frame(Actual = y_train, Predicted = prediction),
   geom_abline(intercept = 0, slope = 1, color = "red") +
   xlab("Actual Values") +
   ylab("Predicted Values") +
-  ggtitle("Actual V Predicted Values")
+  ggtitle("Actual V Predicted Values")+
+  theme(
+    text = element_text(color = "white"),
+    axis.text = element_text(color = "white"),
+    plot.background = element_rect(fill = "steelblue4"),
+    panel.background = element_rect(fill = "cornsilk", color = "grey")
 
+  )
+```
+
+
+The posterior distribution of predictions can be used to provide a probabilistic description of possible outcomes that reflect both uncertainty and variability. The average provides a central tendency estimate of the prediction. <br/>
+```{r}
+#|label: more-plotting
 posterior <- bart_machine_get_posterior(bart_model, X_train)
 #print(posterior$y_hat)
 
@@ -201,12 +233,31 @@ hist(posterior$y_hat_posterior_samples,
 
 error_assumptions <- check_bart_error_assumptions(bart_model, 
                                                   hetero_plot = "yhats")
+```
+
+The covariance importance test can show whether the combined features have significant impact on outcome (p-value <0.05) <br/>
+
+```{r}
+#|label: more-plotting2
+
 
 cov_importance_test(bart_model)
 
+```
+
+The proportions of each variable can be shown as a list to get a more precise list so that, if desired or needed, lower value variables could be removed to improved the model. <br/>
+```{r}
+
+#|label: variable_proportions
+
+
 prop_incl <- get_var_props_over_chain(bart_model)
 print(prop_incl)
+```
 
+Looking at the Markov-Chain Monte Carlo Uncertainty can give a good visual representation of the uncertainty at different points throughout the data. 
+```{r}
+#|label: more-plotting3
 posterior_samples <- posterior$y_hat_posterior_samples
 
 predictions <- as.matrix(predict(bart_model, X_train))
@@ -232,15 +283,16 @@ plot_data <- data.frame(
 
 
 ggplot(plot_data, aes(x = predicted, y = observed)) +
-  geom_point(color = "royalblue4", size = 2) +
+  
   geom_errorbar(aes(ymin = lower, ymax = upper), 
-                width = .2, color = "lightslateblue") +
+                width = .1, color = "lightslateblue") +
+  geom_point(color = "royalblue4", size = 1) +
   geom_abline(intercept = 0, slope = 1, color = "magenta3") +
   scale_y_continuous() +
   labs(
     title = "Predictions with Uncertainty Intervals",
     x = "Predicted", 
-    y = "Observed (log_10)") +
+    y = "Observed ") +
   theme(
     text = element_text(color = "white"),
     axis.text = element_text(color = "white"),
@@ -251,6 +303,8 @@ ggplot(plot_data, aes(x = predicted, y = observed)) +
 ```
 
 # Conclusions, Recommendations, Future Work
+
+BART with MCMC is one of the better methods for modeling datasets with non-linear relationships or complicated interactions without requiring explicit specifications for all interactions and relationships. The inclusion of uncertainty data increases its value by allowing users to have an implicit understanding of how much to trust it. It is useful in many different real-world applications across a wide variety of fields. As data collection tools improve, datasets will become more complicated and this model will continue to have value because of its ability to deal with large complicated datasets.
 
 # References
 

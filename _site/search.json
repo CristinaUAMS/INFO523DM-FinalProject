@@ -49,13 +49,6 @@
     "text": "Bayesian Additive Regression Trees\n\nImage source: Catalyzex Multiple regression trees put together in a larger ensemble to model complex data with many features."
   },
   {
-    "objectID": "presentation.html#basic-background-and-purpose-of-model",
-    "href": "presentation.html#basic-background-and-purpose-of-model",
-    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
-    "section": "Basic Background and Purpose of Model",
-    "text": "Basic Background and Purpose of Model\n\nBayesian Additive Regression Trees with Markov Chain Monte Carlo can model complex, non-linear relationships without explicit modeling of interactions. \nBayesian approach provides uncertainty estimates which help give context and understanding to the model, especially with respect to reliability. \nBy averaging over many trees, it is less likely to be over-fitted than if a single, large tree were used. \nThey are additive because the overall prediction is the average of the predictions of the contributions from each tree. It uses Bayesian inference to estimate the posterior distribution of the model’s parameters providing point estimates and measures of uncertainty in predictions.\nMCMC methods generate samples from the posterior distribution of the parameters by constructing a Markov chain with the desired distribution as the equilibrium distribution."
-  },
-  {
     "objectID": "presentation.html#basic-background-and-purpose",
     "href": "presentation.html#basic-background-and-purpose",
     "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
@@ -105,18 +98,18 @@
     "text": "Worked Example with given Data\n\nFirst the data is split into a 70% training, 30% test where the target is the median value of owner occupied homes (in thousands of dollars).\nThen, using the bartMachine package, create a BART model. This package is nice because it creates the model and has a lot of the information that is very useful for understanding how well the data fits the model.  It shows the \\(\\sigma^2\\) values where a lower value represents a better fit.  L1 and L2 Mean Absolute Error and Mean Squared Error as well as root mean squared error.  Additionally a pseudo R squared value and shapiro-wilk test for normality of the residuals p-value is included as well as a p-value for zero-mean noise (how close to zero the mean remains). \n\n\nbartMachine initializing with 50 trees...\nbartMachine vars checked...\nbartMachine java init...\nbartMachine factors created...\nbartMachine before preprocess...\nbartMachine after preprocess... 13 total features...\nbartMachine sigsq estimated...\nbartMachine training data finalized...\nNow building bartMachine for regression...\nevaluating in sample data...done\n\n\nbartMachine v1.3.4.1 for regression\n\ntraining data size: n = 367 and p = 13 \nbuilt in 1.2 secs on 1 core, 50 trees, 250 burn-in and 1000 post. samples\n\nsigsq est for y beforehand: 22.204 \navg sigsq estimate after burn-in: 3.27317 \n\nin-sample statistics:\n L1 = 397.84 \n L2 = 694.47 \n rmse = 1.38 \n Pseudo-Rsq = 0.9789\np-val for shapiro-wilk test of normality of residuals: 0.60729 \np-val for zero-mean noise: 0.95885 \n\n\n[1] \"Mean Squared Error:  12.4122135495361\""
   },
   {
-    "objectID": "presentation.html#variable-proportions",
-    "href": "presentation.html#variable-proportions",
-    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
-    "section": "Variable Proportions",
-    "text": "Variable Proportions\nThe proportions of each variable can be shown as a list to get a more precise list so that, if desired or needed, lower value variables could be removed to improved the model. \n\n\n      crim         zn      indus       chas        nox         rm        age \n0.07032911 0.04334977 0.08545582 0.05315078 0.09137682 0.11282847 0.05491538 \n       dis        rad        tax    ptratio      black      lstat \n0.11280721 0.04943022 0.07332681 0.07570797 0.07266774 0.10465388"
-  },
-  {
     "objectID": "presentation.html#covariance-importance",
     "href": "presentation.html#covariance-importance",
     "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
     "section": "Covariance Importance",
     "text": "Covariance Importance\nThe covariance importance test can show whether the combined features have significant impact on outcome (p-value &lt;0.05) \n\n\nbartMachine omnibus test for covariate importance\n..................................................\n..................................................\n\n\n\np_val =  0"
+  },
+  {
+    "objectID": "presentation.html#variable-proportions",
+    "href": "presentation.html#variable-proportions",
+    "title": "From Trees to Chains: Implementing Bayesian Additive Regression with MCMC",
+    "section": "Variable Proportions",
+    "text": "Variable Proportions\nThe proportions of each variable can be shown as a list to get a more precise list so that, if desired or needed, lower value variables could be removed to improved the model. \n\n\n      crim         zn      indus       chas        nox         rm        age \n0.07032911 0.04334977 0.08545582 0.05315078 0.09137682 0.11282847 0.05491538 \n       dis        rad        tax    ptratio      black      lstat \n0.11280721 0.04943022 0.07332681 0.07570797 0.07266774 0.10465388"
   },
   {
     "objectID": "presentation.html#mcmc-uncertainty",

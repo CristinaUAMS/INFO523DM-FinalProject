@@ -80,18 +80,40 @@ BART with MCMC is related to the following course topics:<br/>
 
 ## Real-world applications
 
+BART with MCMC is useful in a number of different real-life scenarios. The common aspect of those is that the data exhibits non-linear relationships and interactions between the variables, there is need for uncertainty estimates, high accuracy is preferable.<br/><br/>
+Some specific examples include:<br>
+ -  **Finance: ** From credit risk assessment to stock price prediction, financial analysis is complex and non-linear and requires in depth analysis which this method can provide.<br/>
+ -  **Healthcare: ** Disease risk modeling based on risk factors where there are innumerable interactions to patient outcome predictions are complex and difficult to model with some of the more simple models.<br/>
+ -  **Marketing: ** Customer behaviors can be complicated and this model is more able than most to examine the many different aspects.<br/>
+ - **Environmental Science: ** From climate modeling to ecological modeling, this method can help scientists examine different variables, their impacts and patterns. This can help with conservation planning and assessing environmental impact. <br/>
+ -  **Engineering: ** Detection of anomalies or faults based on sensor data before failure has occurred or in quality control by identifying factors which affect defects. Uncertainty estimates can help specificly identify quality control issues.<br/>
+ -  **Epidemiology: ** BART can model everything from disease spread to intervention effectiveness and give uncertainty estimates which are important for understanding and predicting points of possible outbreaks.<br/> 
+ - **Real Estate: ** BART can be used to predict property values based on location, size, amenities as well as markets. It can also be used to forecast future prices through market trend analysis.<br/>
+
+
 ```{r}
 #| label: load-packages
 #| include: false
 
-
+options(java.parameters = "-Xmx5g")
 if (!require("pacman")) 
   install.packages("pacman")
 
-pacman::p_load(dplyr,
+pacman::p_load(bartMachine,
+               bartMan,
+               caTools,
+               dplyr,
+               ggplot2,
                ggthemes,
                here,
-               tidyverse)
+               MASS,
+               partykit,
+               pdp,
+               rJava,
+               rpart,
+               rpart.plot,
+               tidyverse,
+               treemap)
 
 ```
 
@@ -100,25 +122,133 @@ pacman::p_load(dplyr,
 ```{r}
 #| label: load-data
 #| include: false
-
-tips <- read.csv(here("data/tips.csv"))
+data("Boston")
+boston_data <- Boston
 
 ```
 
-This data is the tip data collected by a waiter over a period of a couple months. The variables include: <br/> \* tip in dollars<br/> \* bill in dollars<br/> \* sex of the bill payer<br/> \* whether there were smokers in the party<br/> \* day of the week<br/> \* time of day<br/> \* size of the party<br/><br/> Data found at https://rdrr.io/cran/reshape2/man/tips.html <br/> Reference given: Bryant, P. G. and Smith, M (1995) Practical Data Analysis: Case Studies in Business Statistics. Homewood, IL: Richard D. Irwin Publishing
+The Boston Housing dataset consists of various features related to housing, including:<br/>
+
+ -  crim: Per capita crime rate by town<br/>
+ -  zn: Proportion of residential land zoned for lots over 25,000 sq. ft.<br/>
+ -  indus: Proportion of non-retail business acres per town<br/>
+ -  chas: Charles River dummy variable (1 if tract bounds river; 0 otherwise)<br/>
+ -  nox: Nitric oxides concentration (parts per 10 million)<br/>
+ -  rm: Average number of rooms per dwelling<br/>
+ -  age: Proportion of owner-occupied units built prior to 1940<br/>
+ -  dis: Weighted distances to five Boston employment centers<br/>
+ -  rad: Index of accessibility to radial highways<br/>
+ -  tax: Full-value property tax rate per $10,000<br/>
+ -  ptratio: Pupil-teacher ratio by town<br/>
+ -  black: 1000(Bk - 0.63)^2 where Bk is the proportion of Black residents by town<br/>
+ -  lstat: Percentage of lower status of the population<br/>
+ -  medv: Median value of owner-occupied homes in $1000s (target variable)<br/><br/>
+ 
+
+The data looks like: 
 
 ```{r}
-#| label: manip-data
+#| label: data
 #| include: false
 
-tips_wPerc <- tips |>
-  mutate(
-    tip_percent = round((tip / total_bill) * 100, 2)
-  )
 
+glimpse(head(boston_data))
 ```
 
 # Worked Example with given Data
+```{r}
+#|label: worked-example
+
+set.seed(1123)
+
+## Split data into training and testing 
+split <- sample.split(boston_data$medv, SplitRatio = 0.7)
+train_data <- subset(boston_data, split == TRUE)
+test_data <- subset(boston_data, split == FALSE)
+
+X_train <- train_data[, -14]
+y_train <- train_data$medv
+
+X_test <- test_data[, -14]
+y_test <- test_data$medv
+
+bart_model <- bartMachine(X_train, y_train)
+y_pred <- predict(bart_model, X_test)
+
+mse <- mean((y_test - y_pred)^2)
+print(paste('Mean Squared Error: ', mse))
+
+importance <- investigate_var_importance(bart_model)
+
+#node_data <- extract_raw_node_data(bart_model)
+
+#treeData <- extractTreeData(bart_model, tipsData)
+prediction <- predict(bart_model, X_train)
+ggplot(data.frame(Actual = y_train, Predicted = prediction),
+       aes(x = Actual, y = Predicted)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  xlab("Actual Values") +
+  ylab("Predicted Values") +
+  ggtitle("Actual V Predicted Values")
+
+posterior <- bart_machine_get_posterior(bart_model, X_train)
+#print(posterior$y_hat)
+
+hist(posterior$y_hat_posterior_samples, 
+     main = "Posterior Distribution of Predictions",
+     xlab = "Value", col = "darkslateblue")
+
+error_assumptions <- check_bart_error_assumptions(bart_model, 
+                                                  hetero_plot = "yhats")
+
+cov_importance_test(bart_model)
+
+prop_incl <- get_var_props_over_chain(bart_model)
+print(prop_incl)
+
+posterior_samples <- posterior$y_hat_posterior_samples
+
+predictions <- as.matrix(predict(bart_model, X_train))
+
+predicted_means <- rowMeans(posterior_samples)
+predicted_lows <- apply(posterior_samples, 1,
+                        function(x) quantile(x, probs = 0.025))
+predicted_highs <- apply(posterior_samples, 1, 
+                         function(x) quantile(x, probs = 0.975))
+
+prediction_intervals <- data.frame(
+  Mean = predicted_means,
+  Lower = predicted_lows,
+  Upper = predicted_highs
+)
+
+plot_data <- data.frame(
+  observed = y_train,
+  predicted = predicted_means,
+  lower = predicted_lows,
+  upper = predicted_highs
+)
+
+
+ggplot(plot_data, aes(x = predicted, y = observed)) +
+  geom_point(color = "royalblue4", size = 2) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), 
+                width = .2, color = "lightslateblue") +
+  geom_abline(intercept = 0, slope = 1, color = "magenta3") +
+  scale_y_continuous() +
+  labs(
+    title = "Predictions with Uncertainty Intervals",
+    x = "Predicted", 
+    y = "Observed (log_10)") +
+  theme(
+    text = element_text(color = "white"),
+    axis.text = element_text(color = "white"),
+    plot.background = element_rect(fill = "steelblue4"),
+    panel.background = element_rect(fill = "cornsilk", color = "grey")
+
+  )
+```
 
 # Conclusions, Recommendations, Future Work
 
